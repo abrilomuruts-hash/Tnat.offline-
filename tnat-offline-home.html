@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tnat.offline – Learn Anywhere, Anytime</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue: #2563eb; --blue-light: #dbeafe; --blue-dark: #1e40af;
+    --pink: #e91e8c; --pink-light: #fce7f3;
+    --green: #16a34a; --green-light: #dcfce7;
+    --purple: #7c3aed; --purple-light: #ede9fe;
+    --orange: #ea580c; --orange-light: #ffedd5;
+    --yellow: #d97706; --yellow-light: #fef3c7;
+    --navy: #1e2a5e;
+    --white: #ffffff;
+    --gray-50: #f8fafc;
+    --gray-100: #f1f5f9;
+    --gray-200: #e2e8f0;
+    --gray-600: #475569;
+    --gray-800: #1e293b;
+    --sidebar-w: 240px;
+    --radius: 14px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  }
+
+  html { font-size: 16px; }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--gray-100);
+    color: var(--gray-800);
+    min-height: 100vh;
+    display: flex;
+  }
+
+  /* ─── SIDEBAR ─────────────────────────────────────────────── */
+  .sidebar {
+    width: var(--sidebar-w);
+    min-height: 100vh;
+    background: var(--white);
+    box-shadow: 2px 0 12px rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    z-index: 100;
+    transition: transform 0.3s ease;
+  }
+  .sidebar-brand {
+    display: flex; align-items: center; gap: 10px;
+    padding: 20px 18px 16px;
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .brand-icon {
+    width: 46px; height: 46px; border-radius: 12px;
+    background: linear-gradient(135deg, #1e2a5e 0%, #2563eb 100%);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .brand-icon svg { width: 26px; height: 26px; fill: white; }
+  .brand-text h1 { font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 800; color: var(--navy); line-height: 1.1; }
+  .brand-text p { font-size: 11px; color: var(--gray-600); font-weight: 600; }
+
+  .nav { flex: 1; padding: 12px 10px; overflow-y: auto; }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px; border-radius: 10px;
+    cursor: pointer; text-decoration: none;
+    color: var(--gray-600); font-weight: 600; font-size: 14px;
+    transition: all 0.2s; margin-bottom: 2px;
+  }
+  .nav-item:hover { background: var(--gray-100); color: var(--gray-800); }
+  .nav-item.active { background: var(--blue-light); color: var(--blue); }
+  .nav-icon {
+    width: 34px; height: 34px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 18px;
+  }
+  .nav-item.active .nav-icon { background: var(--blue); }
+  .nav-item.active .nav-icon svg { fill: white !important; stroke: white !important; }
+
+  .nav-icon svg { width: 18px; height: 18px; }
+
+  .offline-badge {
+    margin: 12px 10px; padding: 12px 14px; border-radius: 10px;
+    background: var(--gray-100); border: 1px solid var(--gray-200);
+  }
+  .offline-badge .ob-title { font-size: 13px; font-weight: 700; color: var(--gray-800); display: flex; align-items: center; gap: 6px; }
+  .offline-badge .ob-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; }
+  .offline-badge .ob-sub { font-size: 11px; color: var(--green); font-weight: 600; margin-top: 2px; }
+
+  /* ─── MAIN ────────────────────────────────────────────────── */
+  .main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* ─── TOPBAR ─────────────────────────────────────────────── */
+  .topbar {
+    background: var(--white);
+    padding: 14px 24px;
+    display: flex; align-items: center; justify-content: flex-end; gap: 12px;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .topbar .hamburger {
+    display: none;
+    background: none; border: none; cursor: pointer;
+    padding: 6px; border-radius: 8px;
+  }
+  .topbar .hamburger svg { width: 22px; height: 22px; stroke: var(--gray-800); stroke-width: 2; }
+  .offline-pill {
+    display: flex; align-items: center; gap: 7px;
+    background: var(--gray-100); border: 1px solid var(--gray-200);
+    padding: 7px 14px; border-radius: 30px;
+    font-size: 13px; font-weight: 700; color: var(--gray-800);
+  }
+  .offline-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; }
+  .offline-pill svg { width: 16px; height: 16px; stroke: var(--gray-600); stroke-width: 2; }
+  .menu-btn {
+    width: 38px; height: 38px; border-radius: 10px; border: 1.5px solid var(--gray-200);
+    background: var(--white); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .menu-btn svg { width: 18px; height: 18px; stroke: var(--gray-800); stroke-width: 2; }
+
+  /* ─── CONTENT ────────────────────────────────────────────── */
+  .content { padding: 24px; flex: 1; }
+
+  /* ─── HERO ───────────────────────────────────────────────── */
+  .hero {
+    border-radius: 20px; overflow: hidden;
+    background: linear-gradient(135deg, #1e2a5e 0%, #2d3a8c 40%, #4f3e9e 70%, #7b52b8 100%);
+    position: relative; padding: 36px 36px 36px 40px;
+    display: flex; align-items: center; justify-content: space-between;
+    min-height: 200px; margin-bottom: 28px;
+  }
+  .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='400' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cellipse cx='320' cy='180' rx='180' ry='80' fill='rgba(255,255,255,0.03)'/%3E%3Cellipse cx='100' cy='20' rx='120' ry='60' fill='rgba(255,255,255,0.03)'/%3E%3C/svg%3E") no-repeat center/cover;
+  }
+  .hero-mountains {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 100px;
+    background: linear-gradient(180deg, transparent 0%, rgba(76,60,140,0.4) 100%);
+    overflow: hidden;
+  }
+  .hero-mountains::after {
+    content: '';
+    position: absolute; bottom: 0; left: -10%; width: 120%;
+    height: 80px;
+    background: linear-gradient(180deg, transparent 0%, rgba(30,42,94,0.5) 100%);
+    clip-path: polygon(0 80%, 8% 50%, 15% 65%, 25% 30%, 35% 55%, 45% 20%, 55% 45%, 65% 15%, 75% 40%, 85% 25%, 92% 50%, 100% 35%, 100% 100%, 0 100%);
+    background: rgba(30,42,94,0.6);
+  }
+  .hero-text { position: relative; z-index: 2; max-width: 480px; }
+  .hero-text .welcome { font-size: 15px; color: rgba(255,255,255,0.75); font-weight: 600; margin-bottom: 4px; }
+  .hero-text h2 { font-family: 'Poppins', sans-serif; font-size: clamp(28px, 5vw, 42px); font-weight: 900; color: white; line-height: 1.1; margin-bottom: 10px; }
+  .hero-text .tagline { font-size: 15px; color: rgba(255,255,255,0.85); font-weight: 600; margin-bottom: 6px; }
+  .hero-text .tagline span { color: #fbbf24; }
+  .hero-offline {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(0,0,0,0.35); color: white;
+    padding: 7px 14px; border-radius: 30px;
+    font-size: 13px; font-weight: 700; margin-top: 8px;
+  }
+  .hero-offline svg { width: 16px; height: 16px; stroke: white; stroke-width: 2; }
+  .hero-grade {
+    position: relative; z-index: 2;
+    background: white; border-radius: 16px;
+    padding: 18px 24px; text-align: center;
+    min-width: 110px; flex-shrink: 0;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  }
+  .hero-grade .for { font-size: 13px; color: var(--gray-600); font-weight: 600; }
+  .hero-grade .grade-label { font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 800; color: var(--navy); }
+  .hero-grade .grade-num { font-family: 'Poppins', sans-serif; font-size: 52px; font-weight: 900; color: var(--navy); line-height: 1; }
+
+  /* ─── FEATURE CARDS ──────────────────────────────────────── */
+  .section-title { font-size: 13px; font-weight: 800; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 14px; }
+
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px; margin-bottom: 28px;
+  }
+  .feature-card {
+    background: var(--white); border-radius: var(--radius);
+    padding: 22px 18px; text-align: center;
+    box-shadow: var(--shadow); cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1.5px solid transparent;
+  }
+  .feature-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+  .feature-card .fc-icon {
+    width: 60px; height: 60px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 14px; font-size: 26px;
+  }
+  .feature-card h3 { font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 700; margin-bottom: 6px; line-height: 1.3; }
+  .feature-card p { font-size: 12px; color: var(--gray-600); line-height: 1.5; margin-bottom: 14px; }
+  .feature-card .fc-btn {
+    display: inline-block; padding: 8px 18px; border-radius: 30px;
+    font-size: 12px; font-weight: 700; cursor: pointer;
+    border: none; transition: opacity 0.2s;
+  }
+  .feature-card .fc-btn:hover { opacity: 0.85; }
+
+  .fc-blue { border-color: var(--blue-light); }
+  .fc-blue .fc-icon { background: var(--blue); }
+  .fc-blue h3 { color: var(--blue); }
+  .fc-blue .fc-btn { background: var(--blue); color: white; }
+
+  .fc-pink { border-color: var(--pink-light); }
+  .fc-pink .fc-icon { background: var(--pink); }
+  .fc-pink h3 { color: var(--pink); }
+  .fc-pink .fc-btn { background: var(--pink); color: white; }
+
+  .fc-green { border-color: var(--green-light); }
+  .fc-green .fc-icon { background: var(--green); }
+  .fc-green h3 { color: var(--green); }
+  .fc-green .fc-btn { background: var(--green); color: white; }
+
+  .fc-purple { border-color: var(--purple-light); }
+  .fc-purple .fc-icon { background: var(--purple); }
+  .fc-purple h3 { color: var(--purple); }
+  .fc-purple .fc-btn { background: var(--purple); color: white; }
+
+  .fc-orange { border-color: var(--orange-light); }
+  .fc-orange .fc-icon { background: var(--orange); }
+  .fc-orange h3 { color: var(--orange); }
+  .fc-orange .fc-btn { background: var(--orange); color: white; }
+
+  /* ─── INFO CARDS ─────────────────────────────────────────── */
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px; margin-bottom: 28px;
+  }
+  .info-card {
+    background: var(--white); border-radius: var(--radius);
+    padding: 22px; display: flex; align-items: center; gap: 18px;
+    box-shadow: var(--shadow);
+  }
+  .info-card .ic-emoji { font-size: 48px; flex-shrink: 0; }
+  .info-card h3 { font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 800; color: var(--blue); margin-bottom: 5px; }
+  .info-card p { font-size: 13px; color: var(--gray-600); line-height: 1.5; margin-bottom: 8px; }
+  .info-card .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .info-card .tag {
+    font-size: 11px; font-weight: 700; padding: 3px 10px;
+    border-radius: 20px;
+  }
+  .tag-blue { background: var(--blue-light); color: var(--blue-dark); }
+  .tag-green { background: var(--green-light); color: var(--green); }
+  .tag-yellow { background: var(--yellow-light); color: var(--yellow); }
+
+  .progress-card { background: var(--yellow-light); }
+  .progress-card h3 { color: #92400e; }
+  .progress-card p { color: #78350f; }
+  .progress-btn {
+    display: inline-block; padding: 9px 20px; border-radius: 30px;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    background: var(--yellow); color: white; border: none;
+  }
+
+  /* ─── FOOTER QUOTE ───────────────────────────────────────── */
+  .footer-quote {
+    background: var(--white); border-radius: var(--radius);
+    padding: 20px 28px; display: flex; align-items: center; gap: 16px;
+    box-shadow: var(--shadow); margin-bottom: 24px;
+  }
+  .quote-mark { font-size: 48px; font-weight: 900; color: var(--green); line-height: 1; flex-shrink: 0; font-family: 'Poppins', sans-serif; margin-top: -8px; }
+  .footer-quote p { font-size: 15px; font-weight: 700; color: var(--green); font-style: italic; }
+  .footer-quote .fq-emoji { font-size: 32px; flex-shrink: 0; margin-left: auto; }
+
+  /* ─── OVERLAY ────────────────────────────────────────────── */
+  .sidebar-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4); z-index: 99;
+  }
+
+  /* ─── RESPONSIVE ─────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    :root { --sidebar-w: 220px; }
+    .hero { padding: 28px; }
+    .hero-grade .grade-num { font-size: 40px; }
+  }
+
+  @media (max-width: 768px) {
+    body { flex-direction: column; }
+    .sidebar {
+      transform: translateX(-100%);
+      width: 240px;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-overlay.open { display: block; }
+    .main { margin-left: 0; }
+    .topbar { padding: 12px 16px; justify-content: space-between; }
+    .topbar .hamburger { display: flex; }
+    .content { padding: 16px; }
+    .hero { flex-direction: column; align-items: flex-start; gap: 20px; padding: 24px 20px; }
+    .hero-grade { align-self: flex-end; }
+    .feature-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+    .info-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 480px) {
+    .hero-text h2 { font-size: 26px; }
+    .feature-grid { grid-template-columns: repeat(2, 1fr); }
+    .feature-card { padding: 16px 12px; }
+    .feature-card .fc-icon { width: 50px; height: 50px; font-size: 22px; }
+    .feature-card h3 { font-size: 13px; }
+    .feature-card p { font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Overlay -->
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 4h16v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/>
+        <path d="M8 4v2M12 4v2M16 4v2" stroke="rgba(255,255,255,0.7)" stroke-width="1.5" fill="none"/>
+        <circle cx="12" cy="19" r="2"/>
+        <path d="M9 19h6" stroke="rgba(255,255,255,0.7)" stroke-width="1.5"/>
+      </svg>
+    </div>
+    <div class="brand-text">
+      <h1>Tnat.offline</h1>
+      <p>Learn Anywhere, Anytime</p>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <a class="nav-item active" href="#">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+      </div>
+      Home
+    </a>
+    <a class="nav-item" href="#">
+      <div class="nav-icon" style="background:var(--blue-light);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+      </div>
+      Short Notes
+    </a>
+    <a class="nav-item" href="#">
+      <div class="nav-icon" style="background:var(--pink-light);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--pink)" stroke-width="2"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v11m0 0H5a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2h-4m-5 0h5"/></svg>
+      </div>
+      Practice Questions
+    </a>
+    <a class="nav-item" href="#">
+      <div class="nav-icon" style="background:var(--green-light);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg>
+      </div>
+      Workout &amp; Study Balance
+    </a>
+    <a class="nav-item" href="#">
+      <div class="nav-icon" style="background:var(--purple-light);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v11m0 0H5a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2h-4m-5 0h5"/><circle cx="12" cy="12" r="2"/></svg>
+      </div>
+      Natural Science
+    </a>
+    <a class="nav-item" href="#">
+      <div class="nav-icon" style="background:var(--orange-light);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-4 0v2M8 11h.01M12 11h.01M16 11h.01"/></svg>
+      </div>
+      Olympiad Games
+    </a>
+    <a class="nav-item" href="#">
+      <div class="nav-icon" style="background:#fef3c7;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+      </div>
+      Text Book
+    </a>
+    <a class="nav-item" href="#">
+      <div class="nav-icon" style="background:#e0f2fe;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      </div>
+      Progress
+    </a>
+    <a class="nav-item" href="#">
+      <div class="nav-icon" style="background:var(--gray-100);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--gray-600)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+      About
+    </a>
+  </nav>
+
+  <div class="offline-badge">
+    <div class="ob-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0119 12.55"/><path d="M5 12.55a10.94 10.94 0 015.17-2.39"/><path d="M10.71 5.05A16 16 0 0122.56 9"/><path d="M1.42 9a16 16 0 014.7-2.88"/><path d="M8.53 16.11a6 6 0 016.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+      You are offline
+      <div class="ob-dot"></div>
+    </div>
+    <div class="ob-sub">All features available</div>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main">
+  <!-- Topbar -->
+  <header class="topbar">
+    <button class="hamburger" onclick="openSidebar()" aria-label="Open menu">
+      <svg viewBox="0 0 24 24" fill="none"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div style="flex:1"></div>
+    <div class="offline-pill">
+      <svg viewBox="0 0 24 24" fill="none"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0119 12.55"/><path d="M5 12.55a10.94 10.94 0 015.17-2.39"/><path d="M10.71 5.05A16 16 0 0122.56 9"/><path d="M1.42 9a16 16 0 014.7-2.88"/><path d="M8.53 16.11a6 6 0 016.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+      Offline Mode
+      <div class="dot"></div>
+    </div>
+    <button class="menu-btn" aria-label="More options">
+      <svg viewBox="0 0 24 24" fill="none"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+  </header>
+
+  <!-- Content -->
+  <main class="content">
+
+    <!-- Hero Banner -->
+    <section class="hero" aria-label="Welcome banner">
+      <div class="hero-mountains"></div>
+      <div class="hero-text">
+        <p class="welcome">Welcome to</p>
+        <h2>Tnat.offline</h2>
+        <p class="tagline">The fast, lightweight learning platform<br>for <span>Grade 9</span> students.</p>
+        <div class="hero-offline">
+          <svg viewBox="0 0 24 24" fill="none"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0119 12.55"/><path d="M5 12.55a10.94 10.94 0 015.17-2.39"/></svg>
+          No internet needed. Just knowledge.
+        </div>
+      </div>
+      <div class="hero-grade" aria-label="Grade 9">
+        <div class="for">for</div>
+        <div class="grade-label">GRADE</div>
+        <div class="grade-num">9</div>
+      </div>
+    </section>
+
+    <!-- Feature Cards -->
+    <p class="section-title">Quick Access</p>
+    <div class="feature-grid">
+      <div class="feature-card fc-blue">
+        <div class="fc-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M4 19.5A2.5 2.5 0 016.5 17H20V2H6.5A2.5 2.5 0 004 4.5v15z"/></svg>
+        </div>
+        <h3>Short Notes</h3>
+        <p>Quick and easy notes for fast revision.</p>
+        <button class="fc-btn">Open Notes</button>
+      </div>
+      <div class="feature-card fc-pink">
+        <div class="fc-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+        </div>
+        <h3>Practice Questions</h3>
+        <p>Practice questions to prepare for exams.</p>
+        <button class="fc-btn">Start Practicing</button>
+      </div>
+      <div class="feature-card fc-green">
+        <div class="fc-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><circle cx="12" cy="4" r="2"/><path d="M7 22l1.5-5.5L10 18l2-8 2 8 1.5-1.5L17 22M4 11.5a8 8 0 0016 0"/></svg>
+        </div>
+        <h3>Workout &amp; Study Balance</h3>
+        <p>Tips and guides to stay healthy and focused.</p>
+        <button class="fc-btn">View Tips</button>
+      </div>
+      <div class="feature-card fc-purple">
+        <div class="fc-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M9 3h6v2H9zM7 5h10l1 3H6zM5 8h14l-2 12H7z"/><circle cx="9" cy="15" r="1"/><circle cx="15" cy="15" r="1"/></svg>
+        </div>
+        <h3>Natural Science</h3>
+        <p>Physics, Mathematics, Chemistry &amp; Biology (Grade 9).</p>
+        <button class="fc-btn">Start Learning</button>
+      </div>
+      <div class="feature-card fc-orange">
+        <div class="fc-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><rect x="2" y="6" width="20" height="13" rx="3"/><circle cx="8" cy="12" r="1.5"/><circle cx="16" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><path d="M8 4l1 2M16 4l-1 2"/></svg>
+        </div>
+        <h3>Olympiad Games</h3>
+        <p>Olympiad-style practice games to challenge yourself.</p>
+        <button class="fc-btn">Play Games</button>
+      </div>
+    </div>
+
+    <!-- Info Cards -->
+    <p class="section-title">About This App</p>
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="ic-emoji">🎓</div>
+        <div>
+          <h3>Built for Grade 9</h3>
+          <p>All content is carefully designed for Grade 9 students.</p>
+          <div class="tags">
+            <span class="tag tag-blue">Simple</span>
+            <span class="tag tag-green">Smart</span>
+            <span class="tag tag-yellow">Effective</span>
+          </div>
+        </div>
+      </div>
+      <div class="info-card progress-card">
+        <div class="ic-emoji">🏆</div>
+        <div>
+          <h3>Track Your Progress</h3>
+          <p>Keep learning, keep improving. Your progress matters!</p>
+          <button class="progress-btn">View Progress</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Quote -->
+    <div class="footer-quote">
+      <div class="quote-mark">"</div>
+      <p>Learn without limits. No internet needed. Just knowledge.</p>
+      <div class="fq-emoji">🎒</div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  function openSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('overlay').classList.add('open');
+  }
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('open');
+  }
+  // Nav item click
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+      e.preventDefault();
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      this.classList.add('active');
+      if (window.innerWidth <= 768) closeSidebar();
+    });
+  });
+</script>
+</body>
+</html>
